@@ -1,0 +1,8 @@
+{'time': '2026-01-30 22:27:21.682388', 'input': 'hello world', 'suspicious': False}
+{'time': '2026-01-30 22:27:54.268285', 'input': 'admin password', 'suspicious': True}
+{'time': '2026-01-30 22:34:58.688492', 'input': 'hello', 'suspicious': False}
+{'time': '2026-01-30 22:38:20.390941', 'input': 'admin password', 'suspicious': True}
+DECOY HIT: {'time': '2026-01-30 22:42:05.064178', 'endpoint': '/admin-login', 'method': 'GET', 'ip': '127.0.0.1', 'note': 'Decoy endpoint triggered'}
+{'time': '2026-01-30 22:47:20.767297', 'endpoint': '/predict', 'input': 'hello', 'suspicious': False, 'ip': '127.0.0.1'}
+{'time': '2026-01-30 22:48:11.441119', 'endpoint': '/predict', 'input': 'admin password', 'suspicious': True, 'ip': '127.0.0.1'}
+DECOY HIT: {'time': '2026-01-30 22:48:36.991153', 'endpoint': '/admin-login', 'method': 'GET', 'ip': '127.0.0.1', 'note': 'Decoy endpoint triggered'}

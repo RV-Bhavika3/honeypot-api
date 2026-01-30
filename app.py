@@ -1,53 +1,121 @@
 from flask import Flask, request, jsonify
-from datetime import datetime
+import datetime
 
 app = Flask(__name__)
 
-API_KEY = "honeypot123"
+# 🔐 API Key
+MY_API_KEY = "HCL123"
 
-# Home route
-@app.route("/")
+# 🚦 Simple in-memory rate tracker
+request_counts = {}
+RATE_LIMIT = 5
+
+
+# -------------------------
+# Home Route
+# -------------------------
+@app.route('/')
 def home():
-    return "Honeypot API running"
-
-# Honeypot login
-@app.route("/api/login", methods=["GET", "POST"])
-def honeypot():
-    ip = request.remote_addr
-    time = datetime.now().isoformat()
-    key = request.headers.get("X-API-KEY")
-
-    print(f"[HONEYPOT] IP={ip}, TIME={time}, KEY={key}")
-
-    if key != API_KEY:
-        return jsonify({
-            "status": "unauthorized",
-            "message": "Invalid API key"
-        }), 401
-
     return jsonify({
-        "status": "success",
-        "message": "Login attempt recorded"
+        "message": "Honeypot API is running"
     }), 200
 
-# Hackathon /predict endpoint
-@app.route("/predict", methods=["POST"])
+
+# -------------------------
+# Rate Limit Check
+# -------------------------
+def check_rate_limit(ip):
+    count = request_counts.get(ip, 0) + 1
+    request_counts[ip] = count
+    return count > RATE_LIMIT
+
+
+# -------------------------
+# Main Protected Endpoint
+# -------------------------
+@app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()  # get JSON input
-    if not data:
-        return jsonify({"error": "No input data provided"}), 400
 
-    # ==============================
-    # TODO: Add your hackathon logic here
-    result = {
-        "message": "Data received successfully",
-        "your_data": data
+    ip = request.remote_addr
+
+    # 🚦 Rate limit trap
+    if check_rate_limit(ip):
+        with open("honeypot_log.txt", "a") as f:
+            f.write(f"RATE LIMIT TRIGGERED from {ip}\n")
+
+        return jsonify({
+            "status": "blocked",
+            "message": "Too many requests — flagged"
+        }), 429
+
+    # 🔐 API Key check
+    client_key = request.headers.get("x-api-key")
+
+    if client_key != MY_API_KEY:
+        return jsonify({
+            "status": "unauthorized",
+            "message": "Invalid or missing API key"
+        }), 401
+
+    data = request.json
+    user_input = data.get("example_input", "")
+
+    suspicious_keywords = [
+        "admin", "password", "root", "sql", "drop", "hack", "attack"
+    ]
+
+    is_suspicious = any(word in user_input.lower() for word in suspicious_keywords)
+
+    log_entry = {
+        "time": str(datetime.datetime.now()),
+        "endpoint": "/predict",
+        "input": user_input,
+        "suspicious": is_suspicious,
+        "ip": ip
     }
-    # ==============================
 
-    return jsonify(result), 200
+    with open("honeypot_log.txt", "a") as file:
+        file.write(str(log_entry) + "\n")
 
-# Run the server
+    if is_suspicious:
+        return jsonify({
+            "status": "blocked",
+            "message": "Suspicious activity detected and logged"
+        }), 403
+
+    return jsonify({
+        "status": "allowed",
+        "message": "Request processed safely"
+    }), 200
+
+
+# -------------------------
+# 🪤 Decoy Endpoint
+# -------------------------
+@app.route('/admin-login', methods=['GET', 'POST'])
+def fake_admin():
+
+    ip = request.remote_addr
+
+    log_entry = {
+        "time": str(datetime.datetime.now()),
+        "endpoint": "/admin-login",
+        "method": request.method,
+        "ip": ip,
+        "note": "Decoy endpoint triggered"
+    }
+
+    with open("honeypot_log.txt", "a") as file:
+        file.write("DECOY HIT: " + str(log_entry) + "\n")
+
+    return jsonify({
+        "status": "decoy",
+        "message": "This endpoint is monitored"
+    }), 200
+
+
+# -------------------------
+# Run Server
+# -------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
