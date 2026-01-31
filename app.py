@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+# API key required for authentication
 API_KEY = "HCL123"
 
 @app.route("/")
@@ -11,15 +12,20 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    # Get API key from headers
     key = request.headers.get("x-api-key")
+    
+    # If header missing or wrong, return Unauthorized
     if key != API_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
+    # Get JSON data
     data = request.get_json(force=True)
     ip = data.get("ip", "")
     endpoint = data.get("endpoint", "")
     payload = data.get("payload", "")
 
+    # Honeypot detection logic
     suspicious = False
     if "admin" in endpoint.lower():
         suspicious = True
@@ -28,6 +34,7 @@ def predict():
     if "select" in payload.lower():
         suspicious = True
 
+    # Return response
     return jsonify({
         "ip": ip,
         "endpoint": endpoint,
@@ -36,5 +43,6 @@ def predict():
     })
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Use Render-assigned port
+    # Use Render-assigned port or fallback for local testing
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
