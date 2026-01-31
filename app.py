@@ -93,7 +93,8 @@ def predict():
         }), 429
 
     # 🔐 API Key check
-    client_key = request.headers.get("x-api-key")
+    client_key = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
+
     if client_key != MY_API_KEY:
         return jsonify({
             "status": "unauthorized",
