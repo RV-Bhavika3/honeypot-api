@@ -76,7 +76,8 @@ def fake_reply():
 # -------------------------
 # Main Protected Endpoint
 # -------------------------
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST','GET'])
+
 def predict():
 
     ip = request.remote_addr or "unknown"
