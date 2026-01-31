@@ -10,12 +10,16 @@ API_KEY = "HCL123"
 def home():
     return "Honeypot API is running"
 
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["GET", "POST"])
 def predict():
-    # Get API key from headers
+    if request.method == "GET":
+        # Handle GET requests gracefully to avoid 405
+        return jsonify({"message": "Send a POST request with JSON data"}), 200
+
+    # POST request processing
     key = request.headers.get("x-api-key")
     
-    # If header missing or wrong, return Unauthorized
+    # Require correct API key
     if key != API_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -41,6 +45,7 @@ def predict():
         "suspicious": suspicious,
         "message": "Honeypot analysis complete"
     })
+
 
 if __name__ == "__main__":
     # Use Render-assigned port or fallback for local testing
