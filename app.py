@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -11,18 +12,15 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     key = request.headers.get("x-api-key")
-
     if key != API_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json(force=True)
-
     ip = data.get("ip", "")
     endpoint = data.get("endpoint", "")
     payload = data.get("payload", "")
 
     suspicious = False
-
     if "admin" in endpoint.lower():
         suspicious = True
     if "drop" in payload.lower():
@@ -38,4 +36,5 @@ def predict():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))  # Use Render-assigned port
+    app.run(host="0.0.0.0", port=port)
