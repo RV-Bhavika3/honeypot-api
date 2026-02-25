@@ -26,3 +26,10 @@ Postman
 - Backend development using Flask
 - API security concepts
 - Logging and monitoring malicious requests
+
+## How to Run the Project
+1. Install dependencies
+pip install -r requirements.txt
+
+2. Run the Flask app
+python app.py
